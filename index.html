@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>Music Player</title>
+<link rel="stylesheet" href="Untitled-2.css">
+<style>
+	html,body{
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		height: 100%;
+	}
+	#canvas {
+	position:fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: -1;
+	pointer-events:none;}
+	    table {
+      position: relative;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;}
+    h1 {
+      color: white;}
+  </style>
+</head>
+	
+<!-- BACKGROUND HERE -->
+
+<body>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+      width: 100vw;  /* canvas width */
+      height: 100vh; /* canvas height */
+    }
+  </style>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    const MAX_HUE = 360;
+    let colorCycleHue = 0;
+
+    // ⚙️ Customizable values
+    const backgroundColor = '#000000';          
+    const colorMode = 'Vertical Rainbow';       
+    const colorCycleSpeed = 10;                 
+    const customColor = '#0000ff';              
+    const pixelSize = 20;                       
+    const speed = 1;                            
+    const fadeRate = 2;                         
+	  
+
+    let columns = Math.floor(canvasWidth / pixelSize);
+    let rows = Math.floor(canvasHeight / pixelSize);
+    let pixels = [];
+
+    class Pixel {
+      constructor(x, y, width, height, fillStyle) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.fillStyle = fillStyle;
+        this.opacity = 1;
+      }
+
+      update() {
+        this.opacity = Math.max(0, this.opacity - 0.02 * fadeRate);
+      }
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.fillStyle = this.fillStyle;
+        ctx.globalAlpha = this.opacity;
+        ctx.fillRect(0, 0, this.width, this.height);
+        ctx.restore();
+      }
+    }
+
+    function getPixelFillStyle(x, y) {
+      switch (colorMode) {
+        case 'Vertical Rainbow':
+          return `hsl(${(x / canvasWidth) * MAX_HUE + colorCycleHue}, 100%, 50%)`;
+        case 'Horizontal Rainbow':
+          return `hsl(${(y / canvasHeight) * MAX_HUE + colorCycleHue}, 100%, 50%)`;
+        case 'Color Cycle':
+          return `hsl(${colorCycleHue}, 100%, 50%)`;
+        case 'Custom Color':
+          return customColor;
+      }
+    }
+
+    function addNewDriftPixels(array) {
+      const maxDim = Math.max(columns, rows) / 2;
+      const time = Date.now() / ((32 - speed) * (20 / pixelSize));
+
+      for (let i = 1; i < maxDim; i += 0.25) {
+        const angle = (time * (maxDim - i)) * (Math.PI / 180);
+        const x = ((columns >> 1) + Math.sin(angle) * i + (columns % 2)) * pixelSize - pixelSize / 2;
+        const y = ((rows >> 1) + Math.cos(angle) * i + (rows % 2)) * pixelSize - pixelSize / 2;
+        const fillStyle = getPixelFillStyle(x, y);
+        array.push(new Pixel(x, y, pixelSize, pixelSize, fillStyle));
+      }
+    }
+
+    function update() {
+      ctx.save();
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      addNewDriftPixels(pixels);
+
+      pixels = pixels.filter(pixel => {
+        if (pixel.opacity > 0) {
+          pixel.update();
+          pixel.draw();
+          return true;
+        }
+        return false;
+      });
+
+      colorCycleHue = (colorCycleHue + colorCycleSpeed / 20) % MAX_HUE;
+
+      ctx.restore();
+      requestAnimationFrame(update);
+    }
+
+    update();
+  </script>
+	</body>
+	
+<!-- End of background -->
+<body>
+<table width="100%" height="100%" border="0">
+  <tbody>
+    <tr>
+      <td width="15%" height="100">&nbsp;</td>
+      <td width="70%" height="33%"></td>
+      <td width="15%" height="33%">&nbsp;</td>
+    </tr>
+    <tr>
+      <td width="" height="400">&nbsp;</td>
+      <td width="" height="33%"><table width="100%" height="181" border="0">
+        <tbody>
+          <tr>
+            <td rowspan="5">&nbsp;</td>
+            <td width="30%" height="200" rowspan="5"><img id="cover" src="images/play-icon.png" alt="playicon" width="200" height="200" /></td>
+            <td colspan="5"><h2 id="trackname">TRACKNAME</h2></td>
+            <td rowspan="5">&nbsp;</td>
+          </tr>
+          <tr>
+            <td height="35" colspan="5"><h3 id="artist">artist</h3></td>
+          </tr>
+          <tr>
+            <td height="38" colspan="5"><audio id="song" src="songs/wefightwelove.mp3"></audio></td>
+          </tr>
+          <tr>
+            <td width="4%"><button id="previous">
+              <img id="previous" src="images/skipback.png" alt="skipback" width="30" height="30" />
+            </button></td>
+            <td width="4%" height="29"><button id="playpause">
+              <img id="playpause" src="images/play.png" alt="play" width="30" height="30" />
+            </button></td>
+            <td width="48%"><input type="range" id="progress" value="0" max="100" /></td>
+            <td width="4%"><button id="audiocontrol">
+              <img id="" src="images/mute.png" alt="audio" width="30" height="30" />
+            </button>
+			  </td>
+            <td width="4%"><button id="next">
+              <img id="next" src="images/skipfront.png" alt="Pause" width="30" height="30" />
+            </button></td>
+          </tr>
+        </tbody>
+      </table></td>
+      <td width="" height="33%">&nbsp;</td>
+    </tr>
+    <tr>
+      <td width="" height="100">&nbsp;</td>
+      <td width="" height="33%">&nbsp;</td>
+      <td width="" height="33%">&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+<script src="JS.js"></script>
+</body>
+</html>
+
+
