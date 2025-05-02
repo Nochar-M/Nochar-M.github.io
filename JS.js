@@ -1,4 +1,4 @@
-e// Playlist array with song data
+// Playlist array with song data
 const playlist = [
 {
     trackname: "Untitled 05",
