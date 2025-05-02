@@ -1,5 +1,17 @@
 // Playlist array with song data
 const playlist = [
+{
+    trackname: "Untitled 05",
+    artist: "Kendrick Lamar",
+    song: "songs/untitled05.mp3",
+    cover: "images/KENDRICK_UU.png"
+  },
+  {
+    trackname: "Breathe Deeper",
+    artist: "Tame Impala",
+    song: "songs/breathedeeper.mp3",
+    cover: "images/TAMEIMPALA_TSR.png"
+  },
   {
     trackname: "We fight / We love",
     artist: "QTIP",
@@ -7,16 +19,40 @@ const playlist = [
     cover: "images/QTIP_RENAISSANCE.png"
   },
   {
-    trackname: "Reality",
-    artist: "Lost Frequencies",
-    song: "songs/reality.mp3",
-    cover: "images/reality.jpg"
+    trackname: "Still dreaming",
+    artist: "Nas Ft. Kanye West",
+    song: "songs/stilldreaming.mp3",
+    cover: "images.png/NAS_HHID"
   },
   {
-    trackname: "Fade",
-    artist: "Alan Walker",
-    song: "songs/fade.mp3",
-    cover: "images/fade.jpg"
+    trackname: "Conrad Tokyo",
+    artist: "A Tribe Called Quest",
+    song: "songs/conradtokyo.mp3",
+    cover: "images/ATCQ_WGIFH.png"
+  },
+  {
+    trackname: "Purple",
+    artist: "Nas",
+    song: "songs/purple.mp3",
+    cover: "images/NAS_TLT.png"
+  },
+  {
+    trackname: "",
+    artist: "",
+    song: "songs/.mp3",
+    cover: "images/.png"
+  },
+  {
+    trackname: "",
+    artist: "",
+    song: "songs/.mp3",
+    cover: "images/.png"
+  },
+  {
+    trackname: "",
+    artist: "",
+    song: "songs/.mp3",
+    cover: "images/.png"
   }
 ];
 
