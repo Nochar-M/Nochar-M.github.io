@@ -22,7 +22,7 @@ const playlist = [
     trackname: "Still dreaming",
     artist: "Nas Ft. Kanye West",
     song: "songs/stilldreaming.mp3",
-    cover: "images.png/NAS_HHID.png"
+    cover: "images/NAS_HHID.png"
   },
   {
     trackname: "Conrad Tokyo",
