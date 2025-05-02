@@ -108,6 +108,4 @@ function loadSong(index) {
   audioElement.play();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadSong(currentIndex);
-});
+loadSong(currentIndex);
