@@ -53,7 +53,7 @@ const playlist = [
 // grab all elements
 const previousButton = document.getElementById("previous");
 const nextButton = document.getElementById("next");
-const playButton = document.getElementById("playpause");
+const playIcon = document.getElementById("playpause");
 const tracknameElement = document.getElementById("trackname");
 const artistElement = document.getElementById("artist");
 const coverElement = document.getElementById("cover");
