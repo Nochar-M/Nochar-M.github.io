@@ -47,12 +47,6 @@ const playlist = [
     artist: "",
     song: "songs/.mp3",
     cover: "images/.png"
-  },
-  {
-    trackname: "",
-    artist: "",
-    song: "songs/.mp3",
-    cover: "images/.png"
   }
 ];
 
