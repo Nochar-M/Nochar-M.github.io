@@ -43,7 +43,7 @@ const playlist = [
     cover: "images/.png"
   },
   {
-    trackname: "",
+    trackname: "meow",
     artist: "",
     song: "songs/.mp3",
     cover: "images/.png"
