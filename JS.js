@@ -110,3 +110,4 @@ function loadSong(index) {
   coverElement.src = playlist[index].cover;
   audioElement.play();
 }
+loadsong(currentIndex);
