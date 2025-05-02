@@ -74,9 +74,6 @@ playIcon.addEventListener("click", () => {
   }
 });
 
-
-
-
 // Next song
 nextButton.addEventListener("click", () => {
   currentIndex++;
@@ -110,4 +107,5 @@ function loadSong(index) {
   coverElement.src = playlist[index].cover;
   audioElement.play();
 }
-loadsong(currentIndex);
+
+loadSong(currentIndex);
