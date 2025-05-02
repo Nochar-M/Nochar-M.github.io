@@ -66,10 +66,10 @@ let currentIndex = 0;
 // Play / Pause
 playIcon.addEventListener("click", () => {
   if (audioElement.paused) {
-    audioElement.pause();
+    audioElement.play();
     playIcon.src = "images/play.png";
   } else {
-    audioElement.play();
+    audioElement.pause();
     playIcon.src = "images/pause.png";
   }
 });
