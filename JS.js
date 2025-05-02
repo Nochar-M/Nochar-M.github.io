@@ -64,6 +64,7 @@ let currentIndex = 0;
 
 
 // Play / Pause
+document.addEventListener("DOMContentLoaded", function() {
 playButton.addEventListener("click", () => {
   if (audioElement.paused) {
     audioElement.pause();
@@ -73,6 +74,9 @@ playButton.addEventListener("click", () => {
     playIcon.src = "images/pause.png";
   }
 });
+});
+
+
 
 // Next song
 nextButton.addEventListener("click", () => {
