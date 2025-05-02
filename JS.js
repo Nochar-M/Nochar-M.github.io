@@ -1,4 +1,4 @@
-// Playlist array with song data
+e// Playlist array with song data
 const playlist = [
 {
     trackname: "Untitled 05",
@@ -108,4 +108,6 @@ function loadSong(index) {
   audioElement.play();
 }
 
-loadSong(currentIndex);
+document.addEventListener("DOMContentLoaded", () => {
+  loadSong(currentIndex);
+});
