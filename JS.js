@@ -59,7 +59,7 @@ const artistElement = document.getElementById("artist");
 const coverElement = document.getElementById("cover");
 const audioElement = document.getElementById("song");
 const progressBar = document.getElementById("progress");
-audioElement.volume = 0.8;
+audioElement.volume = 0.5;
 let currentIndex = 0;
 
 
