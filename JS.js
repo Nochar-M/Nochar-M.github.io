@@ -22,7 +22,7 @@ const playlist = [
     trackname: "Still dreaming",
     artist: "Nas Ft. Kanye West",
     song: "songs/stilldreaming.mp3",
-    cover: "images.png/NAS_HHID"
+    cover: "images.png/NAS_HHID.png"
   },
   {
     trackname: "Conrad Tokyo",
@@ -72,10 +72,10 @@ let currentIndex = 0;
 // Play / Pause
 playButton.addEventListener("click", () => {
   if (audioElement.paused) {
-    audioElement.play();
+    audioElement.pause();
     playIcon.src = "images/play.png";
   } else {
-    audioElement.pause();
+    audioElement.play();
     playIcon.src = "images/pause.png";
   }
 });
