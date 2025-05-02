@@ -65,7 +65,7 @@ let currentIndex = 0;
 
 // Play / Pause
 document.addEventListener("DOMContentLoaded", function() {
-playButton.addEventListener("click", () => {
+playIcon.addEventListener("click", () => {
   if (audioElement.paused) {
     audioElement.pause();
     playIcon.src = "images/play.png";
