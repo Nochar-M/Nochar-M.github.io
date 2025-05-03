@@ -31,124 +31,263 @@
 </head>
 	
 <!-- BACKGROUND HERE -->
-
 <body>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: black;
-    }
-    canvas {
-      display: block;
-      width: 100vw;  /* canvas width */
-      height: 100vh; /* canvas height */
-    }
-  </style>
-<body>
-  <canvas id="canvas"></canvas>
-  <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    <canvas id="canvas"></canvas>
+    <script>
+        // === CONTROL PANEL ===
+        // Change these values to control the effect
+        let color_mode = "Custom"; // "Custom" or "Smooth Hues"
+        let Saturation = 100;      // Only for Smooth Hues (0-100)
+        let Lightness = 30;        // Only for Smooth Hues (0-100)
+        let color_count = 4;       // 2-6 (only for Custom)
+        let color_1 = "#b400b4";
+        let color_2 = "#a10000";
+        let color_3 = "#6a0fae";
+        let color_4 = "#000056";
+        let color_5 = "#0000ff";
+        let color_6 = "#ff00ff";
+        let gradient_type = "Perlin"; // "Conic", "Linear", "Radial", "Perlin"
+        let effect_scale = 40;     // 0-100
+        let color_spread = 40;     // 0-100
+        let x_pos = 50;            // 0-100
+        let y_pos = 50;            // 0-100
+        let pixel_size = 24;       // 2-128 (block size for all effects)
 
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-
-    const MAX_HUE = 360;
-    let colorCycleHue = 0;
-
-    // ⚙️ Customizable values
-    const backgroundColor = '#000000';          
-    const colorMode = 'Vertical Rainbow';       
-    const colorCycleSpeed = 10;                 
-    const customColor = '#0000ff';              
-    const pixelSize = 20;                       
-    const speed = 0.01;                            
-    const fadeRate = 2;                         
-	  
-
-    let columns = Math.floor(canvasWidth / pixelSize);
-    let rows = Math.floor(canvasHeight / pixelSize);
-    let pixels = [];
-
-    class Pixel {
-      constructor(x, y, width, height, fillStyle) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.fillStyle = fillStyle;
-        this.opacity = 1;
-      }
-
-      update() {
-        this.opacity = Math.max(0, this.opacity - 0.02 * fadeRate);
-      }
-
-      draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.fillStyle = this.fillStyle;
-        ctx.globalAlpha = this.opacity;
-        ctx.fillRect(0, 0, this.width, this.height);
-        ctx.restore();
-      }
-    }
-
-    function getPixelFillStyle(x, y) {
-      switch (colorMode) {
-        case 'Vertical Rainbow':
-          return `hsl(${(x / canvasWidth) * MAX_HUE + colorCycleHue}, 100%, 50%)`;
-        case 'Horizontal Rainbow':
-          return `hsl(${(y / canvasHeight) * MAX_HUE + colorCycleHue}, 100%, 50%)`;
-        case 'Color Cycle':
-          return `hsl(${colorCycleHue}, 100%, 50%)`;
-        case 'Custom Color':
-          return customColor;
-      }
-    }
-
-    function addNewDriftPixels(array) {
-      const maxDim = Math.max(columns, rows) / 2;
-      const time = Date.now() / ((32 - speed) * (20 / pixelSize));
-
-      for (let i = 1; i < maxDim; i += 0.25) {
-        const angle = (time * (maxDim - i)) * (Math.PI / 180);
-        const x = ((columns >> 1) + Math.sin(angle) * i + (columns % 2)) * pixelSize - pixelSize / 2;
-        const y = ((rows >> 1) + Math.cos(angle) * i + (rows % 2)) * pixelSize - pixelSize / 2;
-        const fillStyle = getPixelFillStyle(x, y);
-        array.push(new Pixel(x, y, pixelSize, pixelSize, fillStyle));
-      }
-    }
-
-    function update() {
-      ctx.save();
-      ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      addNewDriftPixels(pixels);
-
-      pixels = pixels.filter(pixel => {
-        if (pixel.opacity > 0) {
-          pixel.update();
-          pixel.draw();
-          return true;
+        // --- Helper Functions ---
+        function HEX_to_RGB(hex) {
+            hex = hex.replace(/^#/, '');
+            if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+            const num = parseInt(hex, 16);
+            return [
+                ((num >> 16) & 255) / 255,
+                ((num >> 8) & 255) / 255,
+                (num & 255) / 255
+            ];
         }
-        return false;
-      });
+        function RGB_to_HEX(rgb) {
+            return (
+                '#' +
+                rgb.map(x => {
+                    const val = Math.round(x * 255).toString(16);
+                    return val.length === 1 ? '0' + val : val;
+                }).join('')
+            );
+        }
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function wrap(x, min = 0, max = 1) {
+            return x - Math.floor((x - min) / (max - min)) * (max - min);
+        }
+        function lerp_RGB(a, b, t) {
+            return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+        }
+        function get_color_RGB(colors, t) {
+            let len = colors.length;
+            t *= len;
+            return lerp_RGB(
+                colors[wrap(Math.floor(t), 0, len)],
+                colors[wrap(Math.ceil(t), 0, len)],
+                wrap(t, 0, 1)
+            );
+        }
+        function get_color_HEX(colors, t) {
+            return RGB_to_HEX(get_color_RGB(colors, t));
+        }
+        function smooth_HSL_to_RGB(h, s, l) {
+            h = h - Math.floor(h);
+            const tau = Math.PI * 2;
+            const y0 = Math.max(l * 2 - 1, 0);
+            const y1 = Math.min(l * 2, 1);
+            const x0 = (-1 / 3 - 1 / 2) * s + 1 / 2;
+            const x1 = (1 - 1 / 2) * s + 1 / 2;
+            const dx = (x1 - x0) * 0.5;
+            const p = s - y0 * 0.5 <= 0.5 ? 1 : 0.5 * ((s - y0 * 0.5 - 0.5) / 0.5) + 1;
+            return [
+                Math.max(((Math.cos((h - 0 / 3) * tau) * (1 - dx ** 2 * 0.5) + 1 - dx ** 2 * 0.5 * 0.25) * dx + x0) * (1 - y0) + y0, 0) ** p * y1,
+                Math.max(((Math.cos((h - 1 / 3) * tau) * (1 - dx ** 2 * 0.6) + 1 - dx ** 2 * 0.6 * 0.25) * dx + x0) * (1 - y0) + y0, 0) ** p * y1,
+                Math.max(((Math.cos((h - 2 / 3) * tau) * (1 - dx ** 2 * 0.0) + 1 - dx ** 2 * 0.0 * 0.25) * dx + x0) * (1 - y0) + y0, 0) ** p * y1,
+            ];
+        }
+        function clamp(x, a, b) { return x > b ? b : x < a ? a : x; }
 
-      colorCycleHue = (colorCycleHue + colorCycleSpeed / 20) % MAX_HUE;
+        // --- Perlin Noise Implementation (2D+z) ---
+        const noise = (function () {
+            const perm = new Uint8Array(512);
+            const grad3 = [
+                [1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],
+                [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
+                [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
+            ];
+            function seed(s) {
+                for (let i = 0; i < 256; i++) perm[i] = i;
+                for (let i = 0; i < 256; i++) {
+                    let j = (s = (s * 9301 + 49297) % 233280) % 256;
+                    [perm[i], perm[j]] = [perm[j], perm[i]];
+                }
+                for (let i = 0; i < 256; i++) perm[i + 256] = perm[i];
+            }
+            seed(1337);
+            function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function grad(hash, x, y, z) {
+                const g = grad3[hash % 12];
+                return g[0] * x + g[1] * y + g[2] * z;
+            }
+            function perlin(x, y, z) {
+                let X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+                x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+                let u = fade(x), v = fade(y), w = fade(z);
+                let aaa = perm[X + perm[Y + perm[Z]]];
+                let aba = perm[X + perm[Y + 1 + perm[Z]]];
+                let aab = perm[X + perm[Y + perm[Z + 1]]];
+                let abb = perm[X + perm[Y + 1 + perm[Z + 1]]];
+                let baa = perm[X + 1 + perm[Y + perm[Z]]];
+                let bba = perm[X + 1 + perm[Y + 1 + perm[Z]]];
+                let bab = perm[X + 1 + perm[Y + perm[Z + 1]]];
+                let bbb = perm[X + 1 + perm[Y + 1 + perm[Z + 1]]];
+                return lerp(
+                    lerp(
+                        lerp(grad(aaa, x, y, z), grad(baa, x - 1, y, z), u),
+                        lerp(grad(aba, x, y - 1, z), grad(bba, x - 1, y - 1, z), u),
+                        v
+                    ),
+                    lerp(
+                        lerp(grad(aab, x, y, z - 1), grad(bab, x - 1, y, z - 1), u),
+                        lerp(grad(abb, x, y - 1, z - 1), grad(bbb, x - 1, y - 1, z - 1), u),
+                        v
+                    ),
+                    w
+                );
+            }
+            function perlin_normalized(x, y, z) {
+                return perlin(x, y, z) * 0.5 + 0.5;
+            }
+            return { perlin, perlin_normalized };
+        })();
 
-      ctx.restore();
-      requestAnimationFrame(update);
-    }
+        // --- Canvas and Animation Setup ---
+        let c = document.getElementById("exCanvas");
+        let ctx = c.getContext("2d");
+        let WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+        function resizeCanvas() {
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+            c.width = WIDTH;
+            c.height = HEIGHT;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
 
-    update();
-  </script>
-	</body>
+        // --- Animation State ---
+        let prev_time = performance.now();
+        let time = performance.now();
+        let colors_RGB = [];
+        let colors_HEX = [];
+        let c_x = WIDTH / 2;
+        let c_y = HEIGHT / 2;
+        let spread = 1;
+        let scale = 1;
+        let z = 0;
+        const PI = Math.PI;
+        const TWO_PI = 2 * PI;
+
+        // --- Main Update Loop ---
+        function update() {
+            if (c.width !== window.innerWidth || c.height !== window.innerHeight) resizeCanvas();
+
+            prev_time = time;
+            time = performance.now();
+
+            // Colors
+            colors_HEX = [];
+            colors_RGB = [];
+            switch (color_mode) {
+                case "Custom":
+                    colors_HEX = [color_1, color_2, color_3, color_4, color_5, color_6].slice(0, color_count);
+                    colors_RGB = colors_HEX.map((c) => HEX_to_RGB(c));
+                    break;
+                case "Smooth Hues":
+                    const len = 24;
+                    for (let i = 0; i < len; i++) {
+                        colors_RGB[i] = smooth_HSL_to_RGB(i / len, Saturation * 0.01, Lightness * 0.01);
+                        colors_HEX[i] = RGB_to_HEX(colors_RGB[i]);
+                    }
+                    break;
+            }
+
+            // Draw Effect
+            c_x = x_pos * 0.01 * WIDTH;
+            c_y = y_pos * 0.01 * HEIGHT;
+            scale = 4 ** (effect_scale / 50 - 1);
+            spread = 4 ** (color_spread / 50 - 1);
+
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            if (colors_RGB.length === 0) {
+                ctx.fillStyle = "#ff00ff";
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                console.error("No colors to display!");
+            } else if (gradient_type === "Conic") {
+                // Pixelated conic
+                for (let y = 0; y < HEIGHT; y += pixel_size) {
+                    for (let x = 0; x < WIDTH; x += pixel_size) {
+                        let dx = x + pixel_size / 2 - c_x;
+                        let dy = y + pixel_size / 2 - c_y;
+                        let t = (dx === 0 && dy === 0) ? 0 : (Math.atan2(dy, dx) / TWO_PI) * spread;
+                        let rgb = get_color_RGB(colors_RGB, t);
+                        ctx.fillStyle = RGB_to_HEX(rgb);
+                        ctx.fillRect(x, y, pixel_size, pixel_size);
+                    }
+                }
+            } else if (gradient_type === "Linear") {
+                // Pixelated linear
+                for (let y = 0; y < HEIGHT; y += pixel_size) {
+                    for (let x = 0; x < WIDTH; x += pixel_size) {
+                        let t = ((x + pixel_size / 2) / WIDTH + (y + pixel_size / 2) / HEIGHT) * 0.5 * spread;
+                        let rgb = get_color_RGB(colors_RGB, t);
+                        ctx.fillStyle = RGB_to_HEX(rgb);
+                        ctx.fillRect(x, y, pixel_size, pixel_size);
+                    }
+                }
+            } else if (gradient_type === "Radial") {
+                // Pixelated radial
+                for (let y = 0; y < HEIGHT; y += pixel_size) {
+                    for (let x = 0; x < WIDTH; x += pixel_size) {
+                        let dx = x + pixel_size / 2 - c_x;
+                        let dy = y + pixel_size / 2 - c_y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) / (Math.max(WIDTH, HEIGHT) / 2);
+                        let t = dist * spread;
+                        let rgb = get_color_RGB(colors_RGB, t);
+                        ctx.fillStyle = RGB_to_HEX(rgb);
+                        ctx.fillRect(x, y, pixel_size, pixel_size);
+                    }
+                }
+            } else if (gradient_type === "Perlin") {
+                // Pixelated Perlin effect!
+                z += 0.008; // SPEED CHANGER
+				// // // / / // // // // //
+                let color_shift = (performance.now() * 0.00007) % 1;
+                let uv_scale = 0.0045 * scale;
+                for (let y = 0; y < HEIGHT; y += pixel_size) {
+                    for (let x = 0; x < WIDTH; x += pixel_size) {
+                        let u = (x + pixel_size/2 - c_x) * uv_scale;
+                        let v = (y + pixel_size/2 - c_y) * uv_scale;
+                        let t = noise.perlin_normalized(u, v, z) * spread + color_shift;
+                        let rgb = get_color_RGB(colors_RGB, t);
+                        ctx.fillStyle = RGB_to_HEX(rgb);
+                        ctx.fillRect(x, y, pixel_size, pixel_size);
+                    }
+                }
+            } else {
+                ctx.fillStyle = "#ff00ff";
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                console.error("Unknown gradient type:", gradient_type);
+            }
+
+            window.requestAnimationFrame(update);
+        }
+        window.requestAnimationFrame(update);
+    </script>
+</body>
 	
 <!-- End of background -->
 <body>
